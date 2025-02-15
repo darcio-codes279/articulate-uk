@@ -1,101 +1,300 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { DogIcon as Animal, Utensils, Film, Dumbbell, Music, Globe } from "lucide-react"
+import useSound from "use-sound"
+import { Settings } from "@/components/settings"
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+const categories = {
+  animals: {
+    icon: Animal,
+    words: ["Dog", "Cat", "Elephant", "Giraffe", "Lion", "Tiger", "Monkey", "Zebra", "Kangaroo", "Penguin"],
+  },
+  food: {
+    icon: Utensils,
+    words: ["Pizza", "Sushi", "Burger", "Pasta", "Salad", "Ice Cream", "Chocolate", "Banana", "Apple", "Steak"],
+  },
+  movies: {
+    icon: Film,
+    words: [
+      "Star Wars",
+      "Titanic",
+      "Avatar",
+      "Jurassic Park",
+      "The Matrix",
+      "Frozen",
+      "The Godfather",
+      "Avengers",
+      "Inception",
+      "Toy Story",
+    ],
+  },
+  sports: {
+    icon: Dumbbell,
+    words: [
+      "Football",
+      "Basketball",
+      "Tennis",
+      "Golf",
+      "Swimming",
+      "Volleyball",
+      "Baseball",
+      "Soccer",
+      "Rugby",
+      "Cricket",
+    ],
+  },
+  music: {
+    icon: Music,
+    words: ["Rock", "Jazz", "Pop", "Classical", "Hip Hop", "Country", "Blues", "Reggae", "Electronic", "Folk"],
+  },
+  geography: {
+    icon: Globe,
+    words: ["Mountain", "River", "Ocean", "Desert", "Forest", "Island", "Volcano", "Canyon", "Glacier", "Savanna"],
+  },
 }
+
+export default function ArticulateGame() {
+  const [currentWord, setCurrentWord] = useState("")
+  const [timeLeft, setTimeLeft] = useState(60)
+  const [maxTime, setMaxTime] = useState(60)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [score, setScore] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [showTimerDialog, setShowTimerDialog] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(true)
+  const [maxSkips, setMaxSkips] = useState(3)
+  const [remainingSkips, setRemainingSkips] = useState(3)
+
+  const [playCorrect] = useSound("/sounds/correct.mp3")
+  const [playPass] = useSound("/sounds/pass.mp3")
+  const [playTimeUp] = useSound("/sounds/timeup.mp3")
+  const [playSelect] = useSound("/sounds/select.mp3")
+
+  useEffect(() => {
+    if (isPlaying && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (timeLeft === 0) {
+      playTimeUp()
+      endGame()
+    }
+  }, [isPlaying, timeLeft, playTimeUp])
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setShowTimerDialog(true)
+    }
+  }, [selectedCategory])
+
+  const startGame = () => {
+    setIsPlaying(true)
+    setCurrentWord(getRandomWord())
+    setTimeLeft(maxTime)
+    setScore(0)
+    setGameOver(false)
+    setShowTimerDialog(false)
+    setRemainingSkips(maxSkips)
+  }
+
+  const getRandomWord = () => {
+    const words = categories[selectedCategory].words
+    return words[Math.floor(Math.random() * words.length)]
+  }
+
+  const handleCorrect = () => {
+    playCorrect()
+    setScore(score + 1)
+    setCurrentWord(getRandomWord())
+  }
+
+  const handlePass = () => {
+    if (remainingSkips > 0) {
+      playPass()
+      setCurrentWord(getRandomWord())
+      setRemainingSkips(remainingSkips - 1)
+    }
+  }
+
+  const endGame = () => {
+    setIsPlaying(false)
+    setGameOver(true)
+  }
+
+  const selectCategory = (category) => {
+    playSelect()
+    setSelectedCategory(category)
+  }
+
+  const resetGame = () => {
+    setSelectedCategory("")
+    setGameOver(false)
+    setScore(0)
+    setRemainingSkips(maxSkips)
+    setIsPlaying(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-blue-600 flex flex-col items-center justify-center p-4">
+      {showTutorial && (
+        <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>How to Play Articulate!</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <ol className="list-decimal list-inside space-y-2">
+                <li>Choose a category from the grid.</li>
+                <li>Set the game duration (10-120 seconds).</li>
+                <li>When the game starts, describe the word shown without saying it.</li>
+                <li>Tap "Got it!" if guessed correctly, or "Pass" to skip.</li>
+                <li>Try to guess as many words as possible before time runs out!</li>
+              </ol>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setShowTutorial(false)}>Got it!</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {!isPlaying && !gameOver && (
+        <div className="text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-8 text-white">Articulate!</h1>
+          <div className="absolute top-4 right-4">
+            <Settings
+              maxSkips={maxSkips}
+              onMaxSkipsChange={(value) => {
+                setMaxSkips(value)
+                setRemainingSkips(value)
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
+            {Object.entries(categories).map(([category, { icon: Icon }]) => (
+              <Card
+                key={category}
+                className="p-6 cursor-pointer hover:bg-blue-100 transition-colors flex flex-col items-center"
+                onClick={() => selectCategory(category)}
+              >
+                <Icon className="w-12 h-12 mb-2" />
+                <h2 className="text-xl font-bold capitalize">{category}</h2>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Dialog
+        open={showTimerDialog}
+        onOpenChange={(open) => {
+          setShowTimerDialog(open)
+          if (!open) setSelectedCategory("")
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Timer</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="timer">Game Duration (seconds)</Label>
+            <Input
+              id="timer"
+              type="number"
+              value={maxTime}
+              onChange={(e) => setMaxTime(Number(e.target.value))}
+              min="10"
+              max="120"
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={startGame} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
+              Start Game
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {isPlaying && (
+        <div className="w-full max-w-md">
+          <div className="mb-4 text-center">
+            <motion.div
+              key={timeLeft}
+              initial={{ scale: 1.5 }}
+              animate={{ scale: 1 }}
+              className="text-5xl font-bold text-white"
+            >
+              {timeLeft}
+            </motion.div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentWord}
+              initial={{ rotateX: -90 }}
+              animate={{ rotateX: 0 }}
+              exit={{ rotateX: 90 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-xl p-8 mb-8 shadow-lg"
+            >
+              <h2 className="text-4xl md:text-6xl font-bold text-center text-blue-600">{currentWord}</h2>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="flex justify-between mb-4">
+            <Button
+              onClick={handlePass}
+              size="lg"
+              className="bg-red-500 hover:bg-red-600 text-white text-xl px-8 py-4 w-28"
+              disabled={remainingSkips === 0}
+            >
+              Pass ({remainingSkips})
+            </Button>
+            <Button
+              onClick={handleCorrect}
+              size="lg"
+              className="bg-green-500 hover:bg-green-600 text-white text-xl px-8 py-4 w-28"
+            >
+              Got it!
+            </Button>
+          </div>
+          {remainingSkips === 0 && <p className="text-red-300 text-center mt-2">No more skips left!</p>}
+          <Button
+            onClick={endGame}
+            size="lg"
+            className="w-full bg-yellow-400 text-black hover:bg-yellow-500 text-xl px-8 py-4"
+          >
+            End Game
+          </Button>
+        </div>
+      )}
+
+      {gameOver && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="text-center"
+        >
+          <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">Game Over!</h2>
+          <p className="text-2xl md:text-4xl mb-8 text-yellow-300">Your Score: {score}</p>
+          <Button
+            onClick={resetGame}
+            size="lg"
+            className="bg-yellow-400 text-black hover:bg-yellow-500 text-xl px-8 py-4"
+          >
+            Play Again
+          </Button>
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
